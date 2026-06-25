@@ -30,8 +30,8 @@ val gitCommitTag
         }
     }.getOrDefault("1.0.0")
 
-val defaultAppVerCode by extra(gitCommitCount)
-val defaultAppVerName by extra(gitCommitTag)
+val defaultAppVerCode by extra(15)
+val defaultAppVerName by extra("1.1.10")
 val defaultAppPackageName by extra("cn.buffcow.hypersc")
 
 val androidMinSdkVersion by extra(33)

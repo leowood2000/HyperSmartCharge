@@ -15,6 +15,8 @@ Add custom charge protect value setting for devices that support **battery charg
 2. 在 `com.miui.securitycenter.remote` 注册电池广播后延迟 5 秒做一次复查；如果发现阈值被系统覆盖，就按当前保存的阈值重写一次。
 3. 保持阈值动态读取，用户仍可随时在界面中把 55% 改成其它支持范围内的值。
 
+版本从原模块 `1.1.9 (14)` 升级为 `1.1.10 (15)`，用于区分这个 fork 的修正版。
+
 这个改动不保证所有设备都能真正停止充电；模块仍然依赖系统 `miui.util.IMiCharge` / 底层充电服务对 `smart_chg` 的实现。
 
 > [!WARNING]  
