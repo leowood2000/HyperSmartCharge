@@ -11,6 +11,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.drawable.Icon
 import android.os.BatteryManager
+import android.os.Handler
+import android.os.Looper
 import com.highcapable.yukihookapi.hook.log.YLog
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -24,8 +26,10 @@ object ProtectNotificationHelper : RemoteEventHelper.EventListener {
 
     private const val NOTIFICATION_ID = 1008611
     private const val CHANNEL_ID = "com.miui.powercenter.low"
+    private const val BOOT_ENSURE_DELAY_MILLIS = 5_000L
 
     private var notificationShowed = false
+    private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
     private val batteryRegistered = AtomicBoolean(false)
 
     private val batteryReceiver = object : BroadcastReceiver() {
@@ -54,7 +58,17 @@ object ProtectNotificationHelper : RemoteEventHelper.EventListener {
             )
             RemoteEventHelper.register(context, this)
             YLog.debug("registered battery changed receiver.")
+            scheduleSmartChargeEnsure(context)
         }
+    }
+
+    private fun scheduleSmartChargeEnsure(context: Context) {
+        mainHandler.postDelayed({
+            ChargeProtectionUtils.ensureSmartChargePercentValue(
+                context.applicationContext,
+                "delayed boot check ${BOOT_ENSURE_DELAY_MILLIS}ms"
+            )
+        }, BOOT_ENSURE_DELAY_MILLIS)
     }
 
     override fun onReceive(context: Context, event: RemoteEventHelper.Event, intent: Intent) {

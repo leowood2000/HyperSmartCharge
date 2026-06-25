@@ -19,7 +19,7 @@ object ChargeProtectionUtils {
     fun closeSmartCharge(): Boolean = setSmartChargeValue("0x10")
 
     fun openCommonProtectMode(value: Int): Boolean {
-        val valueToSet = "0x${((value shl 16) or 17).toString(16)}"
+        val valueToSet = smartChargeValueToSet(value)
         val res = setSmartChargeValue(valueToSet)
         YLog.debug("openCommonProtectMode:$res, setValue:$valueToSet")
         return res
@@ -51,14 +51,25 @@ object ChargeProtectionUtils {
                 ctx.putPercentValue(null)
             }
 
-            (getSmartChargeValue()?.toIntOrNull() ?: 1) <= 0 -> {
-                val res = openCommonProtectMode(value)
-                YLog.warn("maybe reboot or smart_chg value changed by sys, retry set:$res")
-                if (res) value else ctx.putPercentValue(null)
-            }
+            ensureSmartChargePercentValue(ctx, value, "read percent value") -> value
 
             else -> value
         }
+    }
+
+    fun ensureSmartChargePercentValue(ctx: Context, reason: String): Boolean {
+        val value = ctx.getPercentValue()?.takeIf(::isSmartChargePercentValueValid) ?: return false
+        return ensureSmartChargePercentValue(ctx, value, reason)
+    }
+
+    private fun ensureSmartChargePercentValue(ctx: Context, value: Int, reason: String): Boolean {
+        val current = getSmartChargeValue()
+        if (isExpectedSmartChargeValue(current, value)) return false
+
+        val res = openCommonProtectMode(value)
+        YLog.warn("smart_chg changed by sys or reboot, retry set:$res, reason:$reason, current:$current, percent:$value")
+        if (!res) ctx.putPercentValue(null)
+        return res
     }
 
     fun putSmartChargePercentValue(ctx: Context, value: Int?) {
@@ -67,6 +78,19 @@ object ChargeProtectionUtils {
 
     fun isSmartChargePercentValueValid(perValue: Int): Boolean {
         return perValue in MIN_CHARGE_PERCENT_VALUE..MAX_CHARGE_PERCENT_VALUE
+    }
+
+    private fun smartChargeValueToSet(value: Int): String {
+        return "0x${((value shl 16) or 17).toString(16)}"
+    }
+
+    private fun isExpectedSmartChargeValue(current: String?, value: Int): Boolean {
+        val expected = (value shl 16) or 17
+        return current?.trim()?.let {
+            it.equals(smartChargeValueToSet(value), ignoreCase = true) ||
+                    it.toIntOrNull() == expected ||
+                    it.removePrefix("0x").removePrefix("0X").toIntOrNull(16) == expected
+        } == true
     }
 
     private fun Context.getPercentValue(): Int? {
