@@ -35,6 +35,8 @@ Add custom charge protect value setting for devices that support **battery charg
 3. 目前仅在 小米14(pro) 下测试通过
 
 ## 下载
+[本 fork 修正版 1.1.10 (15)](https://github.com/leowood2000/HyperSmartCharge/releases/tag/v1.1.10-leowood)
+
 [LSPosed 仓库](https://github.com/Xposed-Modules-Repo/cn.buffcow.hypersc/releases)
 
 ## 无效
